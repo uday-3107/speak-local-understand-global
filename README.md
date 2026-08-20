@@ -52,7 +52,7 @@ docs/, *.md         PRD, architecture, design, phases, memory, rules
 - macOS / Linux with Python 3.13 (this project uses `/opt/anaconda3/bin/python`)
 - PostgreSQL 18: `brew services start postgresql@18`
 - Ollama with a model pulled: `ollama serve` then `ollama pull mistral`
-- Hugging Face access for gated IndicTrans2 models (`huggingface-cli login` as `Uday533`)
+- Hugging Face access for gated IndicTrans2 models 
 
 ## Setup
 

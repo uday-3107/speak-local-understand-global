@@ -35,4 +35,5 @@ htmlcov/
 
 .DS_Store
 
+#optional 
 memory.md

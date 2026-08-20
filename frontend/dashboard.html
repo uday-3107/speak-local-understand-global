@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Dashboard — Speak Local, Understand Global</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #c3c6d7; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    .pulse-dot { position: relative; }
+    .pulse-dot::after {
+        content: ""; position: absolute; inset: 0; border-radius: 9999px;
+        background: currentColor; animation: pulse-ring 1.6s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+        0% { transform: scale(1); opacity: .55; }
+        100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    .chat-bubble-in { background: #eff4ff; color: #0b1c30; }
+    .chat-bubble-out { background: #004ac6; color: #ffffff; }
+    .tab-btn.active { background: #e5eeff; color: #004ac6; }
+    .nav-item.active { background: #e5eeff; color: #004ac6; }
+
+    .fade-in { animation: fadeIn .35s ease-out both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+</style>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                "colors": {
+                    "on-surface": "#0b1c30",
+                    "accent-teal": "#0D9488",
+                    "background": "#f8f9ff",
+                    "surface": "#f8f9ff",
+                    "outline": "#737686",
+                    "surface-container-low": "#eff4ff",
+                    "surface-variant": "#d3e4fe",
+                    "primary": "#004ac6",
+                    "primary-container": "#2563eb",
+                    "on-primary-container": "#eeefff",
+                    "on-surface-variant": "#434655",
+                    "surface-container": "#e5eeff",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c3c6d7",
+                    "surface-container-highest": "#d3e4fe"
+                },
+                "fontFamily": {
+                    "display": ["Geist", "sans-serif"],
+                    "body": ["Inter", "sans-serif"]
+                }
+            }
+        }
+    };
+</script>
+</head>
+<body class="bg-background text-on-surface font-body antialiased">
+
+<div class="min-h-screen lg:flex">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full bg-surface-container-low border-r border-outline-variant/60 transition-transform duration-300 lg:static lg:translate-x-0">
+        <div class="flex flex-col h-full">
+            <a href="index.html" class="flex items-center gap-3 px-5 py-5">
+                <span class="grid place-items-center h-9 w-9 rounded-xl bg-primary text-white text-sm font-semibold">SL</span>
+                <span class="font-display font-semibold text-[15px] leading-tight">Speak Local,<br/>Understand Global</span>
+            </a>
+
+            <nav class="flex-1 px-3 space-y-1 mt-2">
+                <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition" data-nav="overview">
+                    <span class="material-symbols-outlined text-[20px]">space_dashboard</span> Overview
+                </button>
+                <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition" data-nav="live">
+                    <span class="material-symbols-outlined text-[20px]">record_voice_over</span> Live Lecture
+                </button>
+                <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition" data-nav="history">
+                    <span class="material-symbols-outlined text-[20px]">history_edu</span> History
+                </button>
+                <button class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition" data-nav="analytics">
+                    <span class="material-symbols-outlined text-[20px]">monitoring</span> Analytics
+                </button>
+            </nav>
+
+            <div class="p-3 border-t border-outline-variant/60">
+                <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition">
+                    <span class="material-symbols-outlined text-[20px]">home</span> Back to Home
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile topbar -->
+    <header class="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-surface-container-low border-b border-outline-variant/60">
+        <button id="menu-toggle" class="grid place-items-center h-9 w-9 rounded-lg hover:bg-surface-container" aria-label="Open menu">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+        <span class="font-display font-semibold text-sm">Student Dashboard</span>
+        <span id="m-live-chip" class="hidden items-center gap-1.5 text-xs font-medium text-accent-teal"><span class="pulse-dot h-2 w-2 rounded-full bg-accent-teal"></span>Live</span>
+    </header>
+    <div id="overlay" class="fixed inset-0 z-30 bg-on-surface/40 hidden lg:hidden"></div>
+
+    <!-- Main -->
+    <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1400px] mx-auto w-full">
+
+        <div id="view-overview" class="view space-y-6">
+            <!-- Welcome -->
+            <section class="fade-in">
+                <p class="text-xs font-medium text-accent-teal uppercase tracking-wider mb-1">Student workspace</p>
+                <h1 class="font-display font-semibold text-2xl sm:text-3xl">Your lectures, in your language.</h1>
+                <p class="text-sm text-on-surface-variant mt-2 max-w-xl">Join a live lecture, follow real-time translated captions, and review notes later — all offline, on-device.</p>
+            </section>
+
+            <!-- Stats -->
+            <section class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-accent-teal">sensors</span>
+                    </div>
+                    <p id="stat-live" class="font-display font-semibold text-2xl mt-2">–</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Live sessions now</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-accent-teal">history</span>
+                    </div>
+                    <p id="stat-total" class="font-display font-semibold text-2xl mt-2">–</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Total lectures</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-accent-teal">chat</span>
+                    </div>
+                    <p id="stat-segments" class="font-display font-semibold text-2xl mt-2">–</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Translated captions</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-accent-teal">thumb_up</span>
+                    </div>
+                    <p id="stat-satisfaction" class="font-display font-semibold text-2xl mt-2">–</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Positive ratings</p>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-accent-teal">model_training</span>
+                    </div>
+                    <p id="stat-best" class="font-display font-semibold text-2xl mt-2">–</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Best translation model</p>
+                </div>
+            </section>
+
+            <!-- Quick actions -->
+            <section class="grid lg:grid-cols-3 gap-4">
+                <button data-goto="live" class="group text-left bg-gradient-to-br from-primary to-[#153d8f] text-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <span class="material-symbols-outlined text-3xl">record_voice_over</span>
+                    <p class="font-display font-semibold text-lg mt-3">Join a live lecture</p>
+                    <p class="text-sm text-white/80 mt-1">Watch captions in your language as the lecturer speaks.</p>
+                    <span class="inline-flex items-center gap-1 text-sm font-medium mt-4 text-white/90 group-hover:gap-2 transition-all">Get started <span class="material-symbols-outlined text-[18px]">arrow_forward</span></span>
+                </button>
+                <button data-goto="analytics" class="group text-left bg-white rounded-2xl border border-outline-variant/50 p-6 shadow-sm hover:shadow-lg transition-shadow">
+                    <span class="material-symbols-outlined text-3xl text-accent-teal">monitoring</span>
+                    <p class="font-display font-semibold text-lg mt-3">Explore model analytics</p>
+                    <p class="text-sm text-on-surface-variant mt-1">Compare accuracy, BLEU and latency of the ML pipelines.</p>
+                    <span class="inline-flex items-center gap-1 text-sm font-medium mt-4 text-primary group-hover:gap-2 transition-all">Open analytics <span class="material-symbols-outlined text-[18px]">arrow_forward</span></span>
+                </button>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-6 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="material-symbols-outlined text-3xl text-accent-teal">translate</span>
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </div>
+                    <p class="font-display font-semibold text-lg mt-3">Default caption language</p>
+                    <p class="text-sm text-on-surface-variant mt-1">Used when you join a lecture.</p>
+                    <select id="pref-lang" class="mt-4 w-full rounded-xl border-outline-variant text-sm">
+                        <option value="hi">Hindi (हिन्दी)</option>
+                        <option value="en">English</option>
+                        <option value="te">Telugu (తెలుగు)</option>
+                    </select>
+                </div>
+            </section>
+        </div>
+
+        <div id="view-live" class="view hidden space-y-6">
+            <section class="fade-in">
+                <p class="text-xs font-medium text-accent-teal uppercase tracking-wider mb-1">Live lecture</p>
+                <h1 class="font-display font-semibold text-2xl sm:text-3xl">Join &amp; follow along.</h1>
+            </section>
+
+            <section id="join-card" class="bg-white rounded-2xl border border-outline-variant/50 p-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap items-end gap-4">
+                    <label class="block flex-1 min-w-[160px]">
+                        <span class="text-xs font-medium text-on-surface-variant">1 · I want captions in</span>
+                        <select id="join-lang" class="mt-1.5 w-full rounded-xl border-outline-variant text-sm bg-surface-container-low/50"></select>
+                    </label>
+                    <label class="block flex-1 min-w-[200px]">
+                        <span class="text-xs font-medium text-on-surface-variant">2 · Enter the code from your lecturer</span>
+                        <div class="relative mt-1.5">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">key</span>
+                            <input id="join-code" type="text" maxlength="8" autocomplete="off" spellcheck="false"
+                                   class="w-full pl-9 pr-3 h-[42px] rounded-xl border-outline-variant text-sm uppercase tracking-[0.2em] placeholder:tracking-normal placeholder:normal-case"
+                                   placeholder="e.g. PBVDJZ"/>
+                        </div>
+                    </label>
+                    <button id="join-btn" class="h-[42px] px-6 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-container transition">Join lecture</button>
+                </div>
+                <p id="join-hint" class="text-xs text-on-surface-variant mt-3"></p>
+            </section>
+
+            <section id="live-card" class="hidden grid xl:grid-cols-[1fr_360px] gap-4">
+                <div class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm flex flex-col min-h-[420px]">
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-outline-variant/50">
+                        <div>
+                            <p class="font-display font-semibold" id="live-title">Lecture</p>
+                            <p class="text-xs text-on-surface-variant">Captions refresh automatically</p>
+                        </div>
+                        <span id="live-chip" class="hidden items-center gap-1.5 text-xs font-medium text-accent-teal"><span class="pulse-dot h-2 w-2 rounded-full bg-accent-teal"></span>Live</span>
+                    </div>
+                    <ul id="live-captions" class="flex-1 overflow-y-auto p-5 space-y-4 max-h-[560px]">
+                        <li class="text-sm text-on-surface-variant">Join a live lecture to see captions here.</li>
+                    </ul>
+                </div>
+
+                <aside class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm flex flex-col min-h-[420px]">
+                    <div class="flex items-center gap-2 px-5 py-3 border-b border-outline-variant/50">
+                        <span class="material-symbols-outlined text-accent-teal">auto_awesome</span>
+                        <p class="font-display font-semibold text-sm">AI Study Assistant</p>
+                        <span class="ml-auto text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-variant text-primary">demo</span>
+                    </div>
+                    <div id="assist-msgs" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm max-h-[420px]"></div>
+                    <div class="p-3 border-t border-outline-variant/50 space-y-2">
+                        <div class="flex flex-wrap gap-1.5">
+                            <button class="chip text-[11px] px-2.5 py-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container" data-suggest="Summarize what was said so far">Summarize so far</button>
+                            <button class="chip text-[11px] px-2.5 py-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container" data-suggest="Explain the last caption">Explain last caption</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="assist-input" type="text" placeholder="Ask your question…" class="flex-1 rounded-xl border-outline-variant text-sm"/>
+                            <button id="assist-send" class="grid place-items-center h-10 w-10 rounded-xl bg-primary text-white hover:bg-primary-container transition" aria-label="Send">
+                                <span class="material-symbols-outlined text-[20px]">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </div>
+
+        <div id="view-history" class="view hidden space-y-6">
+            <section class="fade-in">
+                <p class="text-xs font-medium text-accent-teal uppercase tracking-wider mb-1">History</p>
+                <h1 class="font-display font-semibold text-2xl sm:text-3xl">Past lectures &amp; notes.</h1>
+                <p class="text-sm text-on-surface-variant mt-2">Browse previous sessions and revisit their translated captions.</p>
+            </section>
+            <section id="history-list" class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm overflow-hidden">
+                <div class="text-sm text-on-surface-variant p-10 text-center">Loading lectures…</div>
+            </section>
+        </div>
+
+        <div id="view-analytics" class="view hidden space-y-6">
+            <section class="fade-in">
+                <p class="text-xs font-medium text-accent-teal uppercase tracking-wider mb-1">Analytics</p>
+                <h1 class="font-display font-semibold text-2xl sm:text-3xl">How the system performs.</h1>
+                <p class="text-sm text-on-surface-variant mt-2">Measured on real evaluation sets during the current training run.</p>
+            </section>
+            <section class="grid xl:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <p class="font-display font-semibold text-sm px-2 pt-1">Model comparison — accuracy vs F1 (7 candidates)</p>
+                    <div id="chart-models" class="h-[340px]"></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <p class="font-display font-semibold text-sm px-2 pt-1">Translation quality — BLEU-4, AI vs rule baseline</p>
+                    <div id="chart-bleu" class="h-[340px]"></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <p class="font-display font-semibold text-sm px-2 pt-1">End-to-end latency by direction (ms)</p>
+                    <div id="chart-latency" class="h-[300px]"></div>
+                </div>
+                <div class="bg-white rounded-2xl border border-outline-variant/50 p-4 shadow-sm">
+                    <p class="font-display font-semibold text-sm px-2 pt-1">User satisfaction — live feedback</p>
+                    <div id="chart-satisfaction" class="h-[300px]"></div>
+                </div>
+            </section>
+            <p id="analytics-note" class="text-xs text-on-surface-variant"></p>
+        </div>
+
+    </main>
+</div>
+
+<footer class="bg-surface-container-low py-4 px-4 text-center text-xs text-on-surface-variant border-t border-outline-variant/60">
+    Speak Local, Understand Global — offline multilingual lecture translation · Modules 1–9
+</footer>
+
+<div id="end-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-on-surface/40">
+    <div class="w-full max-w-md bg-surface-container-low rounded-2xl border border-outline-variant/50 shadow-xl p-6 fade-in">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-2xl text-accent-teal">check_circle</span>
+            <div class="flex-1">
+                <p class="font-display font-semibold text-lg">Lecture ended</p>
+                <p class="text-sm text-on-surface-variant mt-1">The lecturer stopped the session. You can download the full transcript — original speech with translations and timestamps.</p>
+            </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 mt-5">
+            <a id="end-download" href="#" download class="flex-1 inline-flex items-center justify-center gap-2 h-[42px] rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-container transition">
+                <span class="material-symbols-outlined text-[18px]">download</span> Download transcript
+            </a>
+            <button id="end-dismiss" class="h-[42px] px-5 rounded-xl bg-surface-variant text-on-surface text-sm font-medium hover:bg-surface-container transition">Close</button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="js/student.js"></script>
+</body></html>

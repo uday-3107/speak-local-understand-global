@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: speak_local
+      POSTGRES_USER: slug
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-slug_dev}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slug -d speak_local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deployment/backend.Dockerfile
+    environment:
+      SLUG_DATABASE_URL: postgresql+asyncpg://slug:${POSTGRES_PASSWORD:-slug_dev}@db:5432/speak_local
+      SLUG_DEBUG: "false"
+      SLUG_DEVICE: cpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+      - ../data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "cd /app && alembic -c ../database/alembic.ini upgrade head &&
+      uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deployment/frontend.Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  hf_cache:

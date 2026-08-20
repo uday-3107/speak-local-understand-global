@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Speak Local, Understand Global — Offline Live Translation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .animate-fade-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .animate-fade-up.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+        .delay-400 { transition-delay: 400ms; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid #E2E8F0;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdbcd",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed-variant": "#2f2ebe",
+                        "accent-teal": "#0D9488",
+                        "surface-dim": "#cbdbf5",
+                        "surface-tint": "#0053db",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff",
+                        "background": "#f8f9ff",
+                        "primary-fixed": "#dbe1ff",
+                        "surface": "#f8f9ff",
+                        "outline": "#737686",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-container": "#bc4800",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-background": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary": "#4648d4",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-container": "#6063ee",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#213145",
+                        "on-secondary-fixed": "#07006c",
+                        "surface-soft": "#F8FAFC",
+                        "tertiary": "#943700",
+                        "surface-container-high": "#dce9ff",
+                        "border-subtle": "#E2E8F0",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "primary-container": "#2563eb",
+                        "primary": "#004ac6",
+                        "glass-fill": "rgba(255, 255, 255, 0.7)",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "surface-container": "#e5eeff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-container": "#eeefff",
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#e1e0ff",
+                        "outline-variant": "#c3c6d7",
+                        "on-secondary-container": "#fffbff",
+                        "surface-container-highest": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Geist", "sans-serif"],
+                        "display-lg": ["Geist", "sans-serif"],
+                        "label-sm": ["Geist", "sans-serif"],
+                        "headline-md": ["Geist", "sans-serif"],
+                        "headline-lg": ["Geist", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "1.4", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.7", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 bg-glass-fill backdrop-blur-3xl dark:bg-inverse-surface/70 border-b border-border-subtle dark:border-outline-variant shadow-sm transition-all duration-300">
+<div class="flex items-center gap-8">
+<a class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight" href="index.html">Speak Local</a>
+<div class="hidden md:flex items-center gap-6">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#features">Features</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#architecture">Architecture</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors duration-200" href="#performance">Performance</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<a class="inline-flex items-center justify-center px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors duration-200 shadow-[0_10px_30px_rgba(37,99,235,0.2)]" href="lecture.html">Get Started</a>
+</div>
+</nav>
+<header class="relative min-h-[921px] flex items-center pt-16">
+<div class="absolute inset-0 w-full h-full z-0 overflow-hidden bg-surface-soft">
+<div class="absolute inset-0 bg-gradient-to-br from-surface-soft via-surface-container-low to-primary-fixed-dim opacity-30"></div>
+</div>
+<div class="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-8 lg:col-span-7 flex flex-col gap-unit">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-highest/50 backdrop-blur-md border border-border-subtle w-fit mb-4 animate-fade-up is-visible">
+<span class="w-2 h-2 rounded-full bg-accent-teal animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Offline Engine Active — English · हिन्दी · తెలుగు</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-background mb-4 animate-fade-up delay-100 is-visible">
+                Speak Local,<br/>
+<span class="text-primary">Understand Global.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-8 animate-fade-up delay-200 is-visible">Real-time lecture translation for multilingual classrooms. Whisper speech recognition and the NLLB-200 translation engine run entirely on your machine — no internet, no cloud, no data leaving the lecture hall — so every student reads the lesson in their own language.</p>
+<div class="flex flex-col sm:flex-row gap-4 animate-fade-up delay-300 is-visible">
+<a class="inline-flex items-center justify-center px-8 py-4 bg-primary text-on-primary rounded-xl font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-all duration-300 shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:-translate-y-1" href="lecture.html">
+                    Get Started
+                    <span class="material-symbols-outlined ml-2" style="font-size: 18px;">arrow_forward</span>
+</a>
+<a class="inline-flex items-center justify-center px-8 py-4 glass-panel text-primary rounded-xl font-label-md text-label-md hover:bg-surface-container transition-all duration-300" href="dashboard.html">
+                    Student View
+                    <span class="material-symbols-outlined ml-2" style="font-size: 18px;">play_circle</span>
+</a>
+</div>
+<div class="mt-12 flex items-center gap-6 animate-fade-up delay-400 is-visible">
+<div class="flex -space-x-3">
+<div class="w-10 h-10 rounded-full border-2 border-surface-soft bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-primary">
+                            EN
+                        </div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-soft bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-primary">
+                            हि
+                        </div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-soft bg-surface-container flex items-center justify-center font-label-sm text-label-sm text-primary">
+                            తె
+                        </div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">
+                    Three languages offline today, in every combination.
+                </div>
+</div>
+</div>
+<div class="hidden md:block md:col-span-4 lg:col-span-5 relative animate-fade-up delay-300 h-[500px] is-visible">
+<div class="absolute inset-0 glass-panel rounded-2xl shadow-xl overflow-hidden flex flex-col transform rotate-2 hover:rotate-0 transition-transform duration-500">
+<div class="h-12 border-b border-border-subtle bg-surface-container-lowest/50 flex items-center px-4 justify-between">
+<div class="font-label-md text-label-md text-on-surface font-bold">Lecture 101: Quantum Mechanics</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-surface-soft rounded font-label-sm text-label-sm text-on-surface-variant">Physics</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col gap-4">
+<div class="flex gap-4">
+<div class="w-1 rounded-full bg-border-subtle h-auto"></div>
+<p class="font-body-md text-body-md text-outline" dir="rtl" lang="hi" style="direction: ltr; text-align: left;">अनिश्चितता सिद्धांत बताता है कि हम किसी कण की स्थिति और संवेग दोनों को एक साथ सटीक रूप से नहीं जान सकते।</p>
+</div>
+<div class="flex gap-4">
+<div class="w-1 rounded-full bg-primary h-auto shadow-[0_0_8px_rgba(37,99,235,0.5)]"></div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">The uncertainty principle states that we cannot precisely know both the position and momentum of a particle simultaneously.</p>
+<div class="text-[10px] text-accent-teal mt-1 font-semibold uppercase tracking-wider">NLLB DRAFT</div>
+</div>
+</div>
+<div class="flex gap-4 opacity-50">
+<div class="w-1 rounded-full bg-border-subtle h-auto"></div>
+<p class="font-body-md text-body-md text-outline" lang="hi">इसके गहरे निहितार्थ हैं कि हम प्रकृति को कैसे समझते हैं…</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<section class="py-24 bg-surface-lowest relative" id="features">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-16 max-w-3xl mx-auto reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg md:text-[32px] text-on-surface mb-4">Precision Engineering for Academia</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Built on a foundation of intellectual minimalism, Speak Local reduces cognitive load during complex live translations, allowing you to focus purely on comprehension.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-panel p-8 rounded-2xl flex flex-col gap-6 reveal-on-scroll hover:shadow-lg transition-shadow duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-size: 24px; font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Real-time Speech</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Browser microphone capture with sentence-buffered transcription. Follow complex lectures as naturally as if they were spoken in your native tongue.
+                    </p>
+</div>
+</div>
+<div class="glass-panel p-8 rounded-2xl flex flex-col gap-6 reveal-on-scroll delay-100 hover:shadow-lg transition-shadow duration-300 md:col-span-2 lg:col-span-1 lg:-translate-y-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-size: 24px; font-variation-settings: 'FILL' 1;">wifi_off</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">Offline Engine</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Faster-whisper and NLLB-200 run locally with zero cloud calls during a lecture session. Total privacy — lecture audio and transcripts never leave your machine.</p>
+</div>
+</div>
+<div class="glass-panel p-8 rounded-2xl flex flex-col gap-6 reveal-on-scroll delay-200 hover:shadow-lg transition-shadow duration-300">
+<div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-size: 24px; font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">AI Assistant</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        A local LLM (Ollama / Mistral) explains translated terms and distills one-sentence study notes for efficient post-lecture review.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 bg-surface relative border-t border-border-subtle" id="how-it-works">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-16 max-w-3xl mx-auto reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">How It Works</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">A seamless workflow from spoken word to comprehensive understanding.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative reveal-on-scroll delay-100">
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-border-subtle -translate-y-1/2 z-0"></div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest border-4 border-surface flex items-center justify-center text-primary mb-6 shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 28px;">mic_external_on</span>
+</div>
+<h4 class="font-headline-md text-lg text-on-surface mb-2">1. Capture</h4>
+<p class="font-body-md text-sm text-on-surface-variant">High-fidelity audio input optimized for lecture halls.</p>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest border-4 border-surface flex items-center justify-center text-primary mb-6 shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 28px;">subtitles</span>
+</div>
+<h4 class="font-headline-md text-lg text-on-surface mb-2">2. Transcribe</h4>
+<p class="font-body-md text-sm text-on-surface-variant">Whisper-powered offline speech-to-text conversion.</p>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest border-4 border-surface flex items-center justify-center text-primary mb-6 shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 28px;">translate</span>
+</div>
+<h4 class="font-headline-md text-lg text-on-surface mb-2">3. Translate</h4>
+<p class="font-body-md text-sm text-on-surface-variant">NLLB-200 engine translates complex academic vocabulary.</p>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest border-4 border-surface flex items-center justify-center text-primary mb-6 shadow-sm">
+<span class="material-symbols-outlined" style="font-size: 28px;">psychology</span>
+</div>
+<h4 class="font-headline-md text-lg text-on-surface mb-2">4. Assist</h4>
+<p class="font-body-md text-sm text-on-surface-variant">Local LLM generates explanations and study notes.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 bg-surface-container-low relative border-t border-border-subtle" id="architecture">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-16 max-w-3xl mx-auto reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">System Architecture</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Built for uncompromising privacy and performance entirely on-device.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface border border-border-subtle p-8 rounded-2xl flex flex-col gap-4 reveal-on-scroll shadow-sm">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">memory</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Offline Engine</h3>
+</div>
+<p class="font-body-md text-on-surface-variant">A specialized integration of faster-whisper (STT) and Meta's NLLB-200 (MT), optimized to run locally without internet dependency, ensuring zero data leakage.</p>
+</div>
+<div class="bg-surface border border-border-subtle p-8 rounded-2xl flex flex-col gap-4 reveal-on-scroll delay-100 shadow-sm">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">school</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Academic Assistant</h3>
+</div>
+<p class="font-body-md text-on-surface-variant">Powered by a local LLM (Ollama / Mistral) built for academic discourse — it polishes drafts, explains terminology, and writes study notes in the student's language.</p>
+</div>
+<div class="bg-surface border border-border-subtle p-8 rounded-2xl flex flex-col gap-4 reveal-on-scroll delay-200 shadow-sm">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">database</span>
+</div>
+<h3 class="font-headline-md text-xl text-on-surface">Local Storage</h3>
+</div>
+<p class="font-body-md text-on-surface-variant">Transcripts, translations, and recordings are stored in an on-premise PostgreSQL database served alongside the app — complete ownership of your educational data.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 bg-surface relative border-t border-border-subtle" id="performance">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid md:grid-cols-2 gap-12 items-center">
+<div class="reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-6">Benchmarked Accuracy</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8">Measured on our own evaluation harness — 4,692 speech segments and 1,024 parallel sentences — the offline pipeline preserves academic terminology across science, humanities, and engineering lectures.</p>
+<div class="flex flex-col gap-6">
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span class="text-on-surface">DL Language Classification (Transformer)</span>
+<span class="text-primary font-bold">93.6%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2.5 overflow-hidden">
+<div class="bg-primary h-2.5 rounded-full" style="width: 93.6%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span class="text-on-surface">Translation Script Consistency</span>
+<span class="text-accent-teal font-bold">100%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2.5 overflow-hidden">
+<div class="bg-accent-teal h-2.5 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-2">
+<span class="text-on-surface">User Satisfaction (47/47 live ratings)</span>
+<span class="text-secondary font-bold">100%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2.5 overflow-hidden">
+<div class="bg-secondary h-2.5 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-border-subtle rounded-3xl p-8 shadow-xl reveal-on-scroll delay-200">
+<div class="flex items-center justify-center h-64 bg-surface-container-low rounded-2xl border border-border-subtle relative overflow-hidden">
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, #004ac6 1px, transparent 0); background-size: 20px 20px;"></div>
+<div class="relative z-10 text-center">
+<span class="font-display-lg text-[64px] font-bold text-primary tracking-tighter">93.6%</span>
+<p class="font-label-md text-on-surface-variant mt-2 uppercase tracking-widest">Transformer F1 Score</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-24 bg-surface-container-low relative border-t border-border-subtle" id="research">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+<div class="text-center mb-16 max-w-3xl mx-auto reveal-on-scroll">
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">Research &amp; Development</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">The core modules powering our advanced academic language pipeline.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="glass-panel p-6 rounded-2xl reveal-on-scroll">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-accent-teal mb-4">
+<span class="material-symbols-outlined">filter_alt</span>
+</div>
+<h3 class="font-headline-md text-lg text-on-surface mb-2">Audio Preprocessing</h3>
+<p class="font-body-md text-sm text-on-surface-variant">Spectral-gate noise reduction, peak normalization, and VAD segmentation that isolate lecturers' voices in echoing lecture halls.</p>
+</div>
+<div class="glass-panel p-6 rounded-2xl reveal-on-scroll delay-100">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-accent-teal mb-4">
+<span class="material-symbols-outlined">category</span>
+</div>
+<h3 class="font-headline-md text-lg text-on-surface mb-2">ML Classification</h3>
+<p class="font-body-md text-sm text-on-surface-variant">Logistic Regression, Decision Trees, Random Forest, and XGBoost compared on accuracy, precision, recall, and F1 — XGBoost leads the classical family (F1 0.66).</p>
+</div>
+<div class="glass-panel p-6 rounded-2xl reveal-on-scroll delay-200">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-accent-teal mb-4">
+<span class="material-symbols-outlined">hub</span>
+</div>
+<h3 class="font-headline-md text-lg text-on-surface mb-2">Deep Learning Models</h3>
+<p class="font-body-md text-sm text-on-surface-variant">RNN, LSTM, and Transformer architectures benchmarked head-to-head on the same corpus — the Transformer wins by 9 points over LSTM (F1 0.936).</p>
+</div>
+</div>
+</div>
+</section>
+<footer class="w-full py-12 px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center bg-background dark:bg-on-background border-t border-border-subtle dark:border-outline-variant mt-auto">
+<div class="mb-6 md:mb-0">
+<span class="font-headline-md text-headline-md font-bold text-primary">Speak Local</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2 text-sm">© 2026 Speak Local, Understand Global. All rights reserved.</p>
+</div>
+<div class="flex gap-6">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contact Support</a>
+</div>
+</footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Scroll Reveal Observer
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-up', 'is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+            el.classList.add('animate-fade-up');
+            observer.observe(el);
+        });
+    });
+</script>
+</body></html>

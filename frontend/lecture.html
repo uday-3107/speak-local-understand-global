@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lecturer Studio — Speak Local, Understand Global</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/styles.css"/>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #c3c6d7; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    .pulse-dot { position: relative; }
+    .pulse-dot::after {
+        content: ""; position: absolute; inset: 0; border-radius: 9999px;
+        background: currentColor; animation: pulse-ring 1.6s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+        0% { transform: scale(1); opacity: .55; }
+        100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    .nav-item.active { background: #e5eeff; color: #004ac6; }
+    .chat-bubble-in { background: #eff4ff; color: #0b1c30; }
+
+    #studio .panel { border-radius: 1rem; border-color: #c3c6d7; background: #ffffff; }
+    #studio .btn { border-radius: 0.75rem; }
+    #studio .mic-btn { border-radius: 9999px; }
+    #studio .caption-box { border-radius: 1rem; }
+    #studio .caption-item .caption-translated { font-weight: 600; font-size: 15px; }
+    #studio .status-dot { font-size: 12px; }
+</style>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: { extend: {
+            "colors": {
+                "on-surface": "#0b1c30",
+                "accent-teal": "#0D9488",
+                "background": "#f8f9ff",
+                "outline": "#737686",
+                "surface-container-low": "#eff4ff",
+                "surface-variant": "#d3e4fe",
+                "primary": "#004ac6",
+                "primary-container": "#2563eb",
+                "on-primary-container": "#eeefff",
+                "on-surface-variant": "#434655",
+                "surface-container": "#e5eeff",
+                "outline-variant": "#c3c6d7"
+            },
+            "fontFamily": { "display": ["Geist", "sans-serif"], "body": ["Inter", "sans-serif"] }
+        } }
+    };
+</script>
+</head>
+<body class="bg-background text-on-surface font-body antialiased">
+
+<div class="min-h-screen lg:flex">
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full bg-surface-container-low border-r border-outline-variant/60 transition-transform duration-300 lg:static lg:translate-x-0">
+        <div class="flex flex-col h-full">
+            <a href="index.html" class="flex items-center gap-3 px-5 py-5">
+                <span class="grid place-items-center h-9 w-9 rounded-xl bg-primary text-white text-sm font-semibold">SL</span>
+                <span class="font-display font-semibold text-[15px] leading-tight">Speak Local,<br/>Understand Global</span>
+            </a>
+            <nav class="flex-1 px-3 space-y-1 mt-2">
+                <button class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary bg-surface-container" data-nav="studio">
+                    <span class="material-symbols-outlined text-[20px]">mic</span> Studio
+                </button>
+                <a href="dashboard.html" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition">
+                    <span class="material-symbols-outlined text-[20px]">school</span> Student view
+                </a>
+            </nav>
+            <div class="p-3 border-t border-outline-variant/60">
+                <a href="index.html" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface-variant hover:bg-surface-container transition">
+                    <span class="material-symbols-outlined text-[20px]">home</span> Back to Home
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1400px] mx-auto w-full">
+
+        <div id="view-studio" class="space-y-6">
+            <section>
+                <div class="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-medium text-accent-teal uppercase tracking-wider mb-1">Lecturer workspace</p>
+                        <h1 class="font-display font-semibold text-2xl sm:text-3xl">Live translation studio.</h1>
+                        <p class="text-sm text-on-surface-variant mt-2 max-w-xl">Start a session, speak, and your lecture streams to every student in their own language — processed on-device.</p>
+                    </div>
+                    <span id="studio-status" class="hidden items-center gap-1.5 text-xs font-medium text-accent-teal"><span class="pulse-dot h-2 w-2 rounded-full bg-accent-teal"></span>Session live</span>
+                </div>
+            </section>
+
+            <section id="code-banner" class="hidden items-center gap-4 bg-gradient-to-r from-primary to-[#153d8f] text-white rounded-2xl px-5 py-4 shadow-lg">
+                <span class="material-symbols-outlined text-3xl">vpn_key</span>
+                <div class="flex-1">
+                    <p class="text-xs font-medium text-white/80">Share this code with your students</p>
+                    <p id="banner-code" class="font-display font-semibold text-2xl tracking-[0.35em]">——</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="copy-code" class="h-10 px-4 rounded-xl bg-white/20 hover:bg-white/30 text-sm font-medium transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">content_copy</span> Copy
+                    </button>
+                    <a href="dashboard.html#live" class="h-10 px-4 rounded-xl bg-white text-primary text-sm font-medium hover:bg-surface-container transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">school</span> Student view
+                    </a>
+                </div>
+            </section>
+
+            <section class="grid xl:grid-cols-[1fr_360px] gap-4 items-start">
+
+                <div id="studio" class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm p-4 sm:p-5"></div>
+
+                <aside class="space-y-4">
+                    <div class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm grid grid-cols-3 divide-x divide-outline-variant/40">
+                        <div class="p-4 text-center">
+                            <p id="stat-segments" class="font-display font-semibold text-xl">0</p>
+                            <p class="text-[11px] text-on-surface-variant mt-0.5">captions</p>
+                        </div>
+                        <div class="p-4 text-center">
+                            <p id="stat-duration" class="font-display font-semibold text-xl">0:00</p>
+                            <p class="text-[11px] text-on-surface-variant mt-0.5">duration</p>
+                        </div>
+                        <div class="p-4 text-center">
+                            <p id="stat-latency" class="font-display font-semibold text-xl">–</p>
+                            <p class="text-[11px] text-on-surface-variant mt-0.5">avg latency</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-outline-variant/50 shadow-sm flex flex-col">
+                        <div class="flex items-center gap-2 px-5 py-3 border-b border-outline-variant/50">
+                            <span class="material-symbols-outlined text-accent-teal">auto_awesome</span>
+                            <p class="font-display font-semibold text-sm">AI Lecturer Assistant</p>
+                            <span class="ml-auto text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-variant text-primary">demo</span>
+                        </div>
+                        <div id="assist-msgs" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm max-h-[380px]"></div>
+                        <div class="p-3 border-t border-outline-variant/50 space-y-2">
+                            <div class="flex flex-wrap gap-1.5">
+                                <button class="chip text-[11px] px-2.5 py-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container" data-suggest="Explain the last caption">Explain last caption</button>
+                                <button class="chip text-[11px] px-2.5 py-1 rounded-full bg-surface-container-low text-primary hover:bg-surface-container" data-suggest="Suggest a simpler way to say that">Suggest simpler phrasing</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="assist-input" type="text" placeholder="Ask your question…" class="flex-1 rounded-xl border-outline-variant text-sm"/>
+                                <button id="assist-send" class="grid place-items-center h-10 w-10 rounded-xl bg-primary text-white hover:bg-primary-container transition" aria-label="Send">
+                                    <span class="material-symbols-outlined text-[20px]">send</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </div>
+    </main>
+</div>
+
+<footer class="bg-surface-container-low py-4 px-4 text-center text-xs text-on-surface-variant border-t border-outline-variant/60">
+    Speak Local, Understand Global — offline multilingual lecture translation · Modules 1–9
+</footer>
+
+<script type="module" src="js/lecturer.js"></script>
+</body></html>

@@ -34,3 +34,5 @@ htmlcov/
 .vscode/
 
 .DS_Store
+
+memory.md

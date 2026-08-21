@@ -8,6 +8,10 @@ context. Each exchange is appended to data/processed/assistant/live.jsonl.
 """
 from __future__ import annotations
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 import asyncio
 import json
 import time

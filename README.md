@@ -91,7 +91,7 @@ Open http://localhost:8000 — **Lecturer studio** (`lecture.html`) to start a s
 | 6 | Offline translation comparison (rule vs AI, BLEU-4) | ✅ |
 | 7 | AI translation assistant (STT → MT → LLM) | ✅ live in UI |
 | 8 | End-to-end system evaluation | ✅ |
-| 9 | Deployment (Docker Compose) | 🚧 written, untested |
+| 9 | Deployment (Docker Compose) | ✅ tested (docker compose up built & run; postgres+backend+frontend healthy) |
 
 ## Notes
 
@@ -99,3 +99,4 @@ Open http://localhost:8000 — **Lecturer studio** (`lecture.html`) to start a s
 - IndicTrans2 transliterates all Indic scripts through Devanagari internally; official pre/post transliteration (via `indic-nlp-library`) is applied so Telugu captions render in Telugu script.
 - XGBoost artifacts are saved as native `.json` (joblib round-trip segfaults under pytest).
 - See `memory.md` for the full session-by-session history and known gotchas.
+- **Docker**: `docker compose up --build` builds and runs the full stack (postgres, backend, frontend). Fixed `alembic.ini` path and `scripts/` copy in `backend.Dockerfile`; `frontend.Dockerfile` copies from `frontend/` dir.

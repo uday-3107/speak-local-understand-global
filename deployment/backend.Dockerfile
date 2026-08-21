@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+COPY scripts/ /app/scripts/
 
 COPY backend/ /app/backend/
 COPY database/ /app/database/

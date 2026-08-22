@@ -17,6 +17,9 @@ FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     yield
+    from backend.core.db import engine
+
+    await engine.dispose()
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)

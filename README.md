@@ -34,8 +34,8 @@ Results are displayed instantly (or near‑real‑time) to students in their pre
 ---
 
 ## Features
-- **Live captioning** – audio captured in the browser, streamed over WebSockets, and displayed as translated captions with sub‑second latency for most language pairs.
-- **Three supported languages** – English ↔  Hindi ↔  Telugu (all six translation directions).
+- **Live captioning with interim previews** – audio captured in the browser, streamed over WebSockets; dimmed preview captions appear *while the lecturer is still speaking* (~2s), then finalize (with corrected text) on each pause. Only finals are persisted/shown to students.
+- **Three supported languages** – English ↔  Hindi ↔  Telugu (all six translation directions).
 - **Optimised STT per language** – Whisper `small` for EN/HI, Whisper `large‑v3` for TE (higher accuracy where needed).
 - **AI study assistant** – local Ollama Mistral model answers contextual questions; falls back to deterministic templates when the model is offline.
 - **Session management** – join‑code workflow, duration tracking, per‑caption feedback, and downloadable transcripts/recordings.
@@ -197,18 +197,21 @@ All schemas are defined in `backend/schemas/` and documented in the OpenAPI spec
 ---
 
 ## Engineering Decisions
-- **Backend in Python** – the ML/DL stack (Whisper, PyTorch, Transformers) is native to Python; avoiding a Node backend prevents an extra IPC hop.
-- **WebSocket transport** – required for low‑latency streaming of partial transcripts.
-- **Model routing** – IndicTrans2 is the default for Indic‑Indic pairs; NLLB‑200 serves as a fallback for EN↔X directions (see `backend/core/config.py`).
-- **Vanilla frontend** – kept lightweight, no build step, to satisfy the “offline‑first” constraint and simplify deployment.
-- **Docker Compose** – encapsulates Postgres, backend, and frontend services for reproducible local testing.
-- **Separate inference layer** – all model calls are wrapped in `backend/ml_models/` so they can be swapped without touching API or UI code (see Architecture section).
+- **Backend in Python** – the ML/DL stack (Whisper, PyTorch, Transformers) is native to Python; avoiding a Node backend prevents an extra IPC hop.
+- **WebSocket transport** – required for low‑latency streaming of partial transcripts.
+- **Interim caption previews** – captions appear mid‑speech (~2s) as dimmed previews; finals replace them at pauses. Previews aren't persisted, keeping student history clean while cutting perceived latency from ~4–6s to ~2s.
+- **STT/MT pipelining** – translation runs as an ordered background task per chunk, overlapping with the next chunk's transcription instead of running sequentially.
+- **Greedy live decode** – beam size 1 for live captions (~20–30% faster STT); file-based transcription keeps beam 5.
+- **Model routing** – IndicTrans2 is the default for Indic‑Indic pairs; NLLB‑200 serves as a fallback for EN↔X directions (see `backend/core/config.py`).
+- **Vanilla frontend** – kept lightweight, no build step, to satisfy the “offline‑first” constraint and simplify deployment.
+- **Docker Compose** – encapsulates Postgres, backend, and frontend services for reproducible local testing.
+- **Separate inference layer** – all model calls are wrapped in `backend/ml_models/` so they can be swapped without touching API or UI code (see Architecture section).
 
 ---
 
 ## Testing
 ```bash
-/opt/anaconda3/bin/python -m pytest backend/tests -q   # 102 tests, requires Postgres
+/opt/anaconda3/bin/python -m pytest backend/tests -q   # 103 tests, requires Postgres
 ```
 The test suite covers API contracts, WebSocket streaming, model wrapper correctness, and the full evaluation pipeline. Continuous integration runs on each push to ensure coverage remains high.
 

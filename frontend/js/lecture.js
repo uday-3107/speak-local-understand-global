@@ -7,6 +7,7 @@ let wsStatus = "idle";
 let mediaRecorder = null;
 let mediaStream = null;
 let captions = [];
+const interims = new Map(); // interim_id -> preview caption (replaced by final)
 let activeSessionId = null;
 let stopped = false;
 
@@ -83,11 +84,22 @@ export function initLectureView(root) {
   };
 
   const renderCaptions = () => {
-    if (captions.length === 0) {
+    if (captions.length === 0 && interims.size === 0) {
       captionsEl.className = "panel caption-box empty";
       captionsEl.innerHTML = "<p>Generate a code, start the session, then speak — captions will appear here.</p>";
       return;
     }
+    const interimItems = [...interims.values()]
+      .map(
+        (c) => `
+        <li class="caption-item" data-interim="${c.interimId}" style="opacity:0.55">
+          <p class="caption-translated"></p>
+          <p class="caption-source"></p>
+          <p class="caption-meta"></p>
+        </li>`,
+      )
+      .join("");
+    captionsEl.className = "panel caption-box";
     captionsEl.innerHTML = `<ul class="caption-list">${captions
       .map(
         (c, i) => `
@@ -97,7 +109,7 @@ export function initLectureView(root) {
           <p class="caption-meta"></p>
         </li>`,
       )
-      .join("")}</ul>`;
+      .join("")}${interimItems}</ul>`;
 
     captions.forEach((c, i) => {
       const item = captionsEl.querySelector(`[data-idx="${i}"]`);
@@ -106,6 +118,14 @@ export function initLectureView(root) {
       item.querySelector(".caption-meta").textContent =
         `${formatTime(c.timestamp)} · ${c.model_used} · ${formatLatency(c.latency_ms)}`;
     });
+    interims.forEach((c) => {
+      const item = captionsEl.querySelector(`[data-interim="${c.interimId}"]`);
+      if (!item) return;
+      item.querySelector(".caption-translated").textContent = c.translated_text;
+      item.querySelector(".caption-source").textContent = c.source_text;
+      item.querySelector(".caption-meta").textContent = "listening…";
+    });
+    captionsEl.scrollTop = captionsEl.scrollHeight;
   };
 
   generateBtn.addEventListener("click", () => {
@@ -212,6 +232,20 @@ export function initLectureView(root) {
       },
       onMessage: (msg) => {
         if (msg.type === "segment") {
+          if (msg.interim && msg.interim_id) {
+            // Live preview while the lecturer is still speaking.
+            interims.set(msg.interim_id, {
+              interimId: msg.interim_id,
+              ...msg.payload,
+              timestamp: new Date().toISOString(),
+            });
+            renderCaptions();
+            return;
+          }
+          // Final segment: drop the preview it finalizes.
+          if (msg.interim_id && interims.has(msg.interim_id)) {
+            interims.delete(msg.interim_id);
+          }
           const caption = {
             id: msg.payload.id ?? crypto.randomUUID(),
             ...msg.payload,
@@ -335,10 +369,10 @@ export function initLectureView(root) {
       if (secs > 4) pendingPcm = []; // drop long pure-silence accumulation
       return;
     }
-    if (inSilence && Date.now() - silenceStart >= 900) {
+    if (inSilence && Date.now() - silenceStart >= 500) {
       if (secs >= 2.0) flushPcm();
-      else if (Date.now() - silenceStart >= 3000) flushPcm();
-    } else if (!inSilence && secs >= 5.0) {
+      else if (Date.now() - silenceStart >= 2000) flushPcm();
+    } else if (!inSilence && secs >= 4.0) {
       flushPcm();
     }
   }
@@ -410,6 +444,7 @@ export function initLectureView(root) {
       closeSocket();
       if (mediaRecorder) stopCapture();
       captions = [];
+      interims.clear();
     },
   };
 }

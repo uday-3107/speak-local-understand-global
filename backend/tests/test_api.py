@@ -206,3 +206,78 @@ def test_websocket_transcribes_and_persists(client, monkeypatch):
             assert segments[0]["translated_text"] == "नमस्ते दुनिया"
     finally:
         app.dependency_overrides.pop(original_get_db, None)
+
+
+def test_websocket_interim_then_final(client, monkeypatch):
+    import numpy as np
+    from starlette.testclient import TestClient
+
+    from backend.api import websocket as ws_module
+    from backend.core.db import SessionLocal
+    from backend.core.db import get_db as original_get_db
+    from backend.ml_models.whisper_service import SttResult
+
+    calls = {"n": 0}
+
+    def fake_translate(text: str, src: str, tgt: str) -> tuple[str, int, str]:
+        return f"mt:{text}", 10, "nllb-test"
+
+    class FakeWhisper:
+        def transcribe_np(self, audio, language=None, beam_size=5, word_timestamps=False) -> SttResult:
+            calls["n"] += 1
+            return SttResult(
+                text=f"text{calls['n']}",
+                language="en",
+                duration_s=len(audio) / 16000,
+                latency_ms=10,
+                model="small",
+            )
+
+    monkeypatch.setattr(ws_module, "translate", fake_translate)
+    monkeypatch.setattr(ws_module, "whisper", FakeWhisper())
+
+    # Chunks of continuous speech: no trailing silence -> interim path.
+    def fake_decode(raw: bytes) -> np.ndarray:
+        return np.full(16000 * 2, 0.5, dtype=np.float32)
+
+    monkeypatch.setattr(ws_module, "decode_wav_to_float", fake_decode)
+
+    async def override_get_db():
+        async with SessionLocal() as session:
+            yield session
+
+    app.dependency_overrides[original_get_db] = override_get_db
+    try:
+        with TestClient(app) as tc:
+            r = tc.post("/api/v1/sessions", json={"subject": "interim test", "source_lang": "en"})
+            sid = r.json()["id"]
+
+            with tc.websocket_connect(f"/ws/{sid}") as ws:
+                ws.send_json({"type": "audio", "data": "AAAA" + "x" * 16, "target": "hi"})
+                ws.send_json({"type": "audio", "data": "AAAA" + "x" * 16, "target": "hi"})
+                ws.send_json({"type": "audio", "data": "AAAA" + "x" * 16, "target": "hi"})
+                # Each audio chunk yields a status ping plus zero-or-one segment;
+                # drain until the interim and the final have both arrived.
+                interims: list[dict] = []
+                finals: list[dict] = []
+                for _ in range(30):
+                    msg = ws.receive_json()
+                    if msg["type"] != "segment":
+                        continue
+                    if msg.get("interim"):
+                        interims.append(msg)
+                    else:
+                        finals.append(msg)
+                    if interims and finals:
+                        break
+                assert len(interims) == 1
+                assert len(finals) == 1
+                assert "id" not in interims[0]["payload"]
+                assert finals[0]["interim_id"] == interims[0]["interim_id"]
+                assert interims[0]["payload"]["translated_text"].startswith("mt:text")
+
+            # Only the final segment must be persisted.
+            r = tc.get(f"/api/v1/sessions/{sid}/segments")
+            assert len(r.json()) == 1
+    finally:
+        app.dependency_overrides.pop(original_get_db, None)
